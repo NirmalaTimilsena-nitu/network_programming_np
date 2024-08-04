@@ -1,0 +1,98 @@
+package urlconnections;
+
+//How to inspect a Cache-control header
+import java.util.Date;
+import java.util.Locale;
+
+public class CacheControl {
+	private Date maxAge = null;
+	private Date sMaxAge = null;
+	private boolean mustRevalidate = false;
+	private boolean noCache = false;
+	private boolean noStore = false;
+	private boolean proxyRevalidate = false;
+	private boolean publicCache = false;
+	private boolean privateCache = false;
+
+	public CacheControl(String s) {
+		if (s == null || !s.contains(":")) {
+			return; // default policy
+		}
+		String value = s.split(":")[1].trim();
+		String[] components = value.split(",");
+		Date now = new Date();
+		for (String component : components) {
+			try {
+				component = component.trim().toLowerCase(Locale.US);
+				if (component.startsWith("max-age=")) {
+					int secondsInTheFuture = Integer.parseInt(component.substring(8));
+					maxAge = new Date(now.getTime() + 1000 * secondsInTheFuture);
+				} else if (component.startsWith("s-maxage=")) {
+					int secondsInTheFuture = Integer.parseInt(component.substring(8));
+					sMaxAge = new Date(now.getTime() + 1000 * secondsInTheFuture);
+				} else if (component.equals("must-revalidate")) {
+					mustRevalidate = true;
+				} else if (component.equals("proxy-revalidate")) {
+					proxyRevalidate = true;
+				} else if (component.equals("no-cache")) {
+					noCache = true;
+				} else if (component.equals("public")) {
+					publicCache = true;
+				} else if (component.equals("private")) {
+					privateCache = true;
+
+				}
+
+			} catch (RuntimeException ex) {
+				continue;
+
+			}
+		}
+	}
+
+	public Date getMaxAge() {
+		return maxAge;
+	}
+
+	public Date getSharedMaxAge() {
+		return sMaxAge;
+	}
+
+	public boolean mustRevalidate() {
+		return mustRevalidate;
+	}
+
+	public boolean proxyRevalidate() {
+		return proxyRevalidate;
+	}
+
+	public boolean noStore() {
+		return noStore;
+	}
+
+	public boolean noCache() {
+		return noCache;
+	}
+
+	public boolean publicCache() {
+		return publicCache;
+	}
+
+	public boolean privateCache() {
+		return privateCache;
+	}
+
+	public static void main(String[] args) {
+		String cacheHeader = "Cache-Control: max-age=3600, must-revalidate, no-store";
+		CacheControl cacheControl = new CacheControl(cacheHeader);
+
+		System.out.println("Max Age: " + cacheControl.getMaxAge());
+		System.out.println("Shared Max Age: " + cacheControl.getSharedMaxAge());
+		System.out.println("Must Revalidate: " + cacheControl.mustRevalidate());
+		System.out.println("No Cache: " + cacheControl.noCache());
+		System.out.println("No Store: " + cacheControl.noStore());
+		System.out.println("Proxy Revalidate: " + cacheControl.proxyRevalidate());
+		System.out.println("Public Cache: " + cacheControl.publicCache());
+		System.out.println("Private Cache: " + cacheControl.privateCache());
+	}
+}
